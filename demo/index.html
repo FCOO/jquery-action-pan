@@ -11,7 +11,7 @@
 
     <!-- <link  href="bower_components.css" rel="stylesheet">	 -->
     <style>
-        .testbox, .shadow {
+        .testbox {
             position: absolute;
             margin-top: 300px;
             margin-left: 300px;
@@ -19,14 +19,21 @@
             left:100;
             height: 100px;
             width: 200px;
-            border: 1px solid transparent;
-            transition: opacity .1s ease-in-out;
-        }
-        .testbox {
+            border: none;
             background-color: lightgreen;
+            transition: opacity .1s ease-in-out;
             z-index: 2;
         }
         .shadow {
+            box-sizing: border-box;
+            position: absolute;
+            margin-top: 296px;
+            margin-left: 296px;
+            top :100;
+            left:100;
+            height: 208px;
+            width: 208px;
+            border: 4px solid black;
             border-color: black;
             z-index: 1;
         }
@@ -64,7 +71,7 @@
                 resetAfterAction  : false,   
                 classNamePan      : 'pan',
                 classNameThreshold: 'threshold-down',
-
+                //shadows           : $('.shadow'),
                 action: function( $elem ){
                     pos++;
                     console.log('down', pos);
@@ -78,7 +85,7 @@
                 threshold         : function(){ return 0.2; },
                 resetAfterAction  : false,   
                 classNameThreshold: 'threshold-up',
-
+                //shadows           : $('.shadow'),
                 action: function( $elem ){
                     pos--;
                     console.log('up', pos);

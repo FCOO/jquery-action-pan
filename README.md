@@ -37,6 +37,7 @@ http://FCOO.github.io/jquery-action-pan/demo/
 | `classNameThreshold` | `string` | `""` | Class added to the element when it is panning AND value is above the threshold value |
 | `onPan` | `function`| `null` | `function( $element, direction, delta, options, event )`: called when the element is panned |
 | `action` | `function` | `null` | `function($elem, options)`: called when the pan ends above the threshold |
+| `shadows` | jQuery-selection | `null` | jQuery-selection of element that gets same panning as the element<br>**NOTE**: Not working correct if element has dual-direction pan (up-down or left-right) and `options.resetAfterAction == false`  |
 
 ### Methods
 
