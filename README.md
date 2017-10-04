@@ -28,14 +28,16 @@ http://FCOO.github.io/jquery-action-pan/demo/
 | `enabled` | `boolean` | `true` | |
 | `cssPrefix` | `string` | `"margin-"` | Prefix for the css-property used to move the element |
 | `cssPostfix` | `number` | `""` (auto) | `"left"`, `"right"`, `"top"`, or `"bottom"`  |
-| `cssFactor` | `number` | `0 (auto) | +1, -1  |
+| `cssFactor` | `number` | `0` (auto) | +1, -1  |
 | `threshold` | `number` | `.5` | number <= 1 (`.3`), number (`200`), string (`"200px"`), or `function($element){ return number}`: delta-value for css-property where action is fired  |
 | `max` | `number` | `1` | number <= 1 (`.3`), number (`200`), string (`"200px"`), or `function($element){ return number}`: max-value for css-property |
 | `maxBeforeAction` | `boolean` | `true` | Animate to max-value before calling action
 | `resetAfterAction` | `boolean` | `true` | Reset to start-value after action. NOTE: If `resetAfterAction: false `the element get disabled and can only be panned after `.actionPanEnable( direction )` is called |
 | `classNamePan` | `string` | `""` | Class added to the element when it is panning |
 | `classNameThreshold` | `string` | `""` | Class added to the element when it is panning AND value is above the threshold value |
-| `action` | `function($elem, options)` | `function(){}` | |
+| `onPan` | `function`| `null` | `function( $element, direction, delta, options, event )`: called when the element is panned |
+| `action` | `function` | `null` | `function($elem, options)`: called when the pan ends above the threshold |
+
 ### Methods
 
     $.fn.actionPan(options)                //Add action-pan

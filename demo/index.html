@@ -20,6 +20,7 @@
             height: 100px;
             width: 200px;
             border: 1px solid transparent;
+            transition: opacity .1s ease-in-out;
         }
         .testbox {
             background-color: lightgreen;
@@ -36,7 +37,10 @@
             background-color: red;
         }
         .testbox.threshold-up + .shadow {
-            background-color: orange;
+//            background-color: orange;
+        }
+        .testbox.threshold-up {
+            opacity: .5;
         }
     </style>
 </head>
@@ -52,6 +56,7 @@
 	<script src="../src/jquery-action-pan.js"></script>
 	<script>
         var pos = 0;
+
         $('.testbox')
             .actionPan({
                 direction         : 'down',

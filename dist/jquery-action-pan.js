@@ -37,7 +37,7 @@
         this._panaction_reset( direction, true );
     };
     
-    // Plugin defaults – added as a property on our plugin function.
+    // Plugin defaults ï¿½ added as a property on our plugin function.
     $.fn.actionPan.defaults = {
         direction   : "down",       //'down', 'up', 'left' or 'right'
         enabled     : true,         
