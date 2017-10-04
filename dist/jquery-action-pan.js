@@ -213,8 +213,9 @@
                     aboveThreshold: false
                 });
 
-                if (options.shadow)
-                    options.shadow.each(function( $shadow ){
+                if (options.shadows)
+                    options.shadows.each(function( shadow ){
+                        var $shadow = $(shadow);
                         $shadow._panaction_setOptions( direction, {
                             startValue: $shadow.css(options.cssId)
                         });
