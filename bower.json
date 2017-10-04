@@ -1,0 +1,37 @@
+{
+    "name": "jquery-action-pan",
+    "version": "0.0.0",
+    "homepage": "https://github.com/FCOO/jquery-action-pan",
+    "authors": [
+        "Niels Holt"
+    ],
+    "description": "",
+    "main": [
+        "dist/jquery-action-pan.js"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/FCOO/jquery-action-pan.git"
+    },
+    "dependencies": {
+        "jquery": "latest",
+        "hammerjs": "hammer.js#^2.0.8",
+        "jquery-hammer.js": "fcoo/jquery-hammer.js#^0.1.1"
+    },
+    "devDependencies": {
+        "bourbon": "latest",
+        "modernizr-mixin": "latest",
+        "mathsass": "latest"
+    },
+    "license": "MIT",
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "test",
+        "tests"
+    ],
+    "moduleType": [
+        "es6"
+    ]
+}

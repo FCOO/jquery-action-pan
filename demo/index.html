@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="da" style="font-size: 100%">
+<head>
+    <title>fcoo.dk - jquery-action-pan - Demo</title>
+	<meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv='x-dns-prefetch-control' content='on'>
+
+	<meta name='copyright' content='FCOO'>
+	<meta name='owner' content='FCOO'>
+
+    <!-- <link  href="bower_components.css" rel="stylesheet">	 -->
+    <style>
+        .testbox, .shadow {
+            position: absolute;
+            margin-top: 300px;
+            margin-left: 300px;
+            top :100;
+            left:100;
+            height: 100px;
+            width: 200px;
+            border: 1px solid transparent;
+        }
+        .testbox {
+            background-color: lightgreen;
+            z-index: 2;
+        }
+        .shadow {
+            border-color: black;
+            z-index: 1;
+        }
+        .testbox.pan + .shadow {
+            background-color: lightgray;
+        }
+        .testbox.threshold-down + .shadow {
+            background-color: red;
+        }
+        .testbox.threshold-up + .shadow {
+            background-color: orange;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="testbox"></div>
+    <div class="shadow"></div>
+
+
+
+
+	<script src="bower_components.js"></script>
+	<script src="../src/jquery-action-pan.js"></script>
+	<script>
+        var pos = 0;
+        $('.testbox')
+            .actionPan({
+                direction: 'down',
+                threshold: .5,
+                classNamePan        : 'pan',
+                classNameThreshold  : 'threshold-down',
+
+
+                action: function( $elem ){
+                    pos++;
+                    console.log('down', pos);
+                    $elem.actionPanToggle( 'up', pos >= 0);
+                    $elem.actionPanToggle( 'down', pos <= 0);
+                }
+            })
+
+            .actionPan({
+                direction: 'up',
+                threshold: 0.2,
+                classNameThreshold  : 'threshold-up',
+                action: function( $elem ){
+                    pos--;
+                    console.log('up', pos);
+                    $elem.actionPanToggle( 'up', pos >= 0);
+                    $elem.actionPanToggle( 'down', pos <= 0);
+                }
+            })
+
+            ;
+	</script>
+</body>
+</html>
