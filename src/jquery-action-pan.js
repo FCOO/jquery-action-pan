@@ -8,7 +8,7 @@
 
 ****************************************************************************/
 
-(function ($, window, document, undefined) {
+(function ($/*, window, document, undefined*/) {
 	"use strict";
 	
 
@@ -44,8 +44,8 @@
         cssPrefix   : 'margin-',    
         cssPostfix  : '',           //'' (auto), 'left', 'right', 'top', 'bottom'
         cssFactor   : 0,            //0 (auto), +1, -1
-        threshold   : .5,           //number <= 1 (0.3), number (200), string ("200px"): delta-value for css-property where action is fired
-        max         : 1,            //number <= 1 (0.3), number (200), string ("200px"): max-value for css-property
+        threshold   : .5,           //number <= 1 (0.3), number (200), string ("200px"), or function($element) return number: delta-value for css-property where action is fired
+        max         : 1,            //number <= 1 (0.3), number (200), string ("200px"), or function($element) return number: max-value for css-property
 
         maxBeforeAction : true,     //Animate to max-value before calling action
         resetAfterAction: true,     //Reset to start-value after action. NOTE: If resetAfterAction: false the element get disabled and can olny be panned after .actionPanEnable( direction ) is called
@@ -67,33 +67,16 @@
             up   : {cssPostfix: 'top',  cssFactor: -1, hammerDirection: Hammer.DIRECTION_UP,    oppositeDirection: 'down',  },
             left : {cssPostfix: 'left', cssFactor: -1, hammerDirection: Hammer.DIRECTION_LEFT,  oppositeDirection: 'right', horizontal: true },
             right: {cssPostfix: 'left', cssFactor: +1, hammerDirection: Hammer.DIRECTION_RIGHT, oppositeDirection: 'left',  horizontal: true },
-    }
+    };
 
 
     $.fn._paAdd = function( options ){
         var $this = $(this),
             def = directionDefault[options.direction];
-        options.cssPostfix = options.cssPostfix || def.cssPostfix;
-        options.cssFactor = options.cssFactor || def.cssFactor;
-        options.hammerDirection = def.hammerDirection;
+        options.cssPostfix        = options.cssPostfix || def.cssPostfix;
+        options.cssFactor         = options.cssFactor || def.cssFactor;
+        options.hammerDirection   = def.hammerDirection;
         options.oppositeDirection = def.oppositeDirection;
-    
-        //Calc the max and threshold for when the options.action is fired
-        var dim = def.cssPostfix == 'top' ? $this.outerHeight() : $this.outerWidth();
-        try { options.threshold = parseFloat(options.threshold); }
-        catch (e) { options.threshold = .5; }
-        try { options.max = parseFloat(options.max); }
-        catch (e) { options.max = 1; }
-
-        if (options.threshold <= 1)
-            options.thresholdValue = options.threshold * dim;
-        else
-            options.thresholdValue = options.threshold;
-
-        if (options.max <= 1)
-            options.maxValue = options.max * dim;
-        else
-            options.maxValue = options.max;
 
         //Create a string with all className (if any)
         options.classNameAll = '';
@@ -123,17 +106,17 @@
                 $this.data('panstart_and_panend-added', true);
             }
         }
-    }
+    };
 
     $.fn._panaction_getOptions = function( direction ){
         return this.data( 'paOptions-'+direction );
-    }
+    };
 
     $.fn._panaction_setOptions = function( direction, options ){
         var originalOptions = this._panaction_getOptions( direction );
         this.data( 'paOptions-'+direction, $.extend({}, originalOptions, options) );
         return this;
-    }
+    };
 
 
     $.fn._panaction_reset = function( direction, forceBack ){
@@ -152,9 +135,9 @@
             }
         });
         $this.animate( properties, animateOptions );
-    }    
+    };    
     
-    function panstart( event ){
+    function panstart( /*event*/ ){
         var $this = $(this);
 
         $this.data('panaction_panstart_called', true);
@@ -162,38 +145,57 @@
         $.each(['down', 'up', 'left', 'right'], function(index, direction ){
             var options = $this._panaction_getOptions( direction );                
             if (options && options.enabled){
-                var startValue = parseFloat( $this.css(options.cssId) );
+
+                //Calc the max and threshold for when the options.action is fired
+                function getValue(value, defaultValue, elemDim){
+                    var result = $.isFunction(value) ? value($this, options) : value;
+                    try { 
+                        result = parseFloat(result); 
+                    }
+                    catch (e) { 
+                        result = defaultValue; 
+                    }
+                    if (result <= 1)
+                        result = result*elemDim;
+                    return result;                
+                }
+                var startValue     = parseFloat( $this.css(options.cssId) ),
+                    elemDim        = directionDefault[direction].horizontal ? $this.outerWidth() : $this.outerHeight(),
+                    thresholdValue = getValue(options.threshold, $.fn.actionPan.defaults.threshold, elemDim),
+                    maxValue       = getValue(options.max, $.fn.actionPan.defaults.max, elemDim);
 
                 //Calc total and threshold range
                 var range, thresholdRange;
                 if (options.cssFactor > 0){
                     range = {
                         min: startValue,
-                        max: startValue + options.maxValue
+                        max: startValue + maxValue
                     };
                     thresholdRange = {
-                        min: startValue + options.thresholdValue,
+                        min: startValue + thresholdValue,
                         max: range.max
-                    }
+                    };
                 }
                 else {
                     range = {
-                        min: startValue - options.maxValue,
+                        min: startValue - maxValue,
                         max: startValue
                     };
                     thresholdRange = {
                         min: range.min,
-                        max: startValue - options.thresholdValue
-                    }
+                        max: startValue - thresholdValue
+                    };
                 }
     
                 $this.addClass( options.classNamePan );
                 $this._panaction_setOptions( direction, {
-                    startValue      : startValue,
-                    value           : startValue,
-                    range           : range,
-                    thresholdRange  : thresholdRange,
-                    aboveThreshold  : false
+                    startValue    : startValue,
+                    value         : startValue,
+                    thresholdValue: thresholdValue,
+                    maxValue      : maxValue,
+                    range         : range,
+                    thresholdRange: thresholdRange,
+                    aboveThreshold: false
                 });
             }
         });
@@ -211,7 +213,6 @@
             if (options && options.enabled){
                 //Get the value of the css-property to use when panning
                 var deltaValue = options.hammerDirection & Hammer.DIRECTION_HORIZONTAL ? event.gesture.deltaX : event.gesture.deltaY,
-                    thresholdValue  = options.thresholdValue,
                     newValue        = options.startValue + deltaValue,
                     range           = options.range;
 
@@ -243,9 +244,8 @@
         return false;        
     }
 
-    function panend( event ){ 
-        var $this = $(this),
-            actionFound = false;
+    function panend( /*event*/){ 
+        var $this = $(this);
         $.each(['up', 'down', 'left', 'right'], function(index, direction ){
             var options = $this._panaction_getOptions( direction );
             if (options && options.enabled){
@@ -253,7 +253,6 @@
                 //Check if the value is above the threshold
                 if (options.aboveThreshold){
                     var actionAndReset = function(){ 
-//                        options.action( $this, options );
                         $this._panaction_reset( direction );
                         
                         //Disable if not resetting
@@ -264,7 +263,6 @@
                     };
                     //Animate to max if not at max and need to
                     if (options.maxBeforeAction && !options.atMax){
-                        actionFound = true;
                         //Animate to max and the fire action
                         var properties = {};
                         properties[options.cssId] = options.cssFactor > 0 ? options.range.max : options.range.min;

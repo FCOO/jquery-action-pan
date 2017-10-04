@@ -54,11 +54,11 @@
         var pos = 0;
         $('.testbox')
             .actionPan({
-                direction: 'down',
-                threshold: .5,
-                classNamePan        : 'pan',
-                classNameThreshold  : 'threshold-down',
-
+                direction         : 'down',
+                threshold         : .5,
+                resetAfterAction  : false,   
+                classNamePan      : 'pan',
+                classNameThreshold: 'threshold-down',
 
                 action: function( $elem ){
                     pos++;
@@ -69,9 +69,11 @@
             })
 
             .actionPan({
-                direction: 'up',
-                threshold: 0.2,
-                classNameThreshold  : 'threshold-up',
+                direction         : 'up',
+                threshold         : function(){ return 0.2; },
+                resetAfterAction  : false,   
+                classNameThreshold: 'threshold-up',
+
                 action: function( $elem ){
                     pos--;
                     console.log('up', pos);
