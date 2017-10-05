@@ -15,7 +15,7 @@
     $.fn.actionPan = function(options) {
         options = $.extend( true, {}, $.fn.actionPan.defaults, options );
         return this.each(function() {
-            $(this)._paAdd( options );
+            $(this)._panaction_add( options );
         });
     };
 
@@ -72,7 +72,7 @@
     };
 
 
-    $.fn._paAdd = function( options ){
+    $.fn._panaction_add = function( options ){
         var def = directionDefault[options.direction];
         options.cssPostfix        = options.cssPostfix || def.cssPostfix;
         options.cssFactor         = options.cssFactor || def.cssFactor;
@@ -95,27 +95,14 @@
             }
 
             this._panaction_setOptions(options.direction, options);
-            this.on('pan'+options.direction+'.panaction pan'+options.oppositeDirection+'.panaction', $.proxy(this._panaction_pan, this));
-            if (!this.data('panstart_and_panend-added')){
+
+            //Add events, but only once pro element
+            if (!this.data('panstart_and_panend_added'))
                 this
+                    .on('pan'+options.direction+'.panaction pan'+options.oppositeDirection+'.panaction', $.proxy(this._panaction_pan, this))
                     .on('panstart.panaction', $.proxy(this._panaction_panstart, this))
                     .on('panend.panaction',   $.proxy(this._panaction_panend, this))
-                    .data('panstart_and_panend-added', true);
-            }
-        }
-
-        //Add pan to shadows but without class-names and action
-        if (options.shadows){
-            var shadowOptions = $.extend({}, options, {
-                panOwner: this,
-
-                classNamePan      : '',
-                classNameThreshold: '',
-                shadows           : null,
-                onPan             : null,
-                action            : null
-            });
-            options.shadows.actionPan( shadowOptions );
+                    .data('panstart_and_panend_added', true);
         }
     };
 
@@ -134,13 +121,18 @@
         var properties = {},
             options = this._panaction_getOptions( direction );
         if (options){
-            if (options.enabled && (!options.aboveThreshold || options.resetAfterAction || forceBack)){
+            if (forceBack || (options.enabled && (!options.aboveThreshold || options.resetAfterAction))){
                 //pan back to original state
                 properties[options.cssId] = options.startValue;
 
                 //Pan back the shadow
                 if (options.shadows)
-                    options.shadows._panaction_reset( direction, true );
+                    options.shadows.each(function(){
+                        var $shadow = $(this),
+                            shadowProerties = {};
+                        shadowProerties[options.cssId] = $shadow._panaction_getOptions( direction ).startValue;
+                        $shadow.animate( shadowProerties, animateOptions );
+                    });
             }
 
             //Remove all pan-classes
@@ -214,13 +206,11 @@
                 });
 
                 if (options.shadows)
-                    options.shadows.each(function( shadow ){
-                        var $shadow = $(shadow);
-                        $shadow._panaction_setOptions( direction, {
-                            startValue: $shadow.css(options.cssId)
-                        });
+                    options.shadows.each(function(){
+                        var $this = $(this);
+                        $this._panaction_setOptions( direction, { startValue: parseFloat( $this.css(options.cssId) ) } );
                     });
-            }
+            };
         });
     };
 
@@ -234,11 +224,12 @@
         $.each(['down', 'up', 'left', 'right'], function(index, direction ){
             var options = $this._panaction_getOptions( direction );
 
+
             if (options && options.enabled){
                 //Get the value of the css-property to use when panning
-                var deltaValue     = options.hammerDirection & Hammer.DIRECTION_HORIZONTAL ? event.gesture.deltaX : event.gesture.deltaY,
-                    newValue       = options.startValue + deltaValue,
-                    range          = options.range;
+                var deltaValue = options.hammerDirection & Hammer.DIRECTION_HORIZONTAL ? event.gesture.deltaX : event.gesture.deltaY,
+                    newValue   = options.startValue + deltaValue,
+                    range      = options.range;
 
                 //Adjust range if opposite pan exists and is enabled
                 var oppositeOptions = $this._panaction_getOptions( directionDefault[direction].oppositeDirection );
@@ -252,6 +243,9 @@
 
                 $this._panaction_setOptions( direction, { value: newValue });
                 $this.css( options.cssId, newValue );
+
+                //Update deltaValue to 'real' value
+                deltaValue = newValue - options.startValue;
 
                 //Check if value is above thresholdValue
                 var aboveThreshold = ((newValue >= options.thresholdRange.min) && (newValue <= options.thresholdRange.max)),
@@ -268,9 +262,16 @@
                 if (options.onPan)
                     options.onPan( $this, direction, newValue - options.startValue, options, event );
 
+                //Update all shadows (if any)
                 if (options.shadows)
-                    options.shadows._panaction_pan( event );
-            }
+                    options.shadows.each(function(){
+                        var $shadow = $(this);
+                        $shadow.css(
+                            options.cssId,
+                            $shadow._panaction_getOptions( direction ).startValue + deltaValue
+                        );
+                    });
+            } //end of if (options && options.enabled){
         });
         return false;
     };
@@ -296,12 +297,19 @@
                     //Animate to max if not at max and need to
                     if (options.maxBeforeAction && !options.atMax){
                         //Animate to max and the fire action
-                        var properties = {};
-                        properties[options.cssId] = options.cssFactor > 0 ? options.range.max : options.range.min;
-
+                        var properties = {},
+                            newValue   = options.cssFactor > 0 ? options.range.max : options.range.min,
+                            deltaValue = newValue - options.startValue;
+                        properties[options.cssId] = newValue;
                         $this.animate( properties, $.extend({}, animateOptions, {always: actionAndReset}) );
+
                         if (options.shadows)
-                            options.shadows.animate( properties, animateOptions );
+                            options.shadows.each(function(){
+                                var $shadow = $(this),
+                                    shadowProerties = {};
+                                shadowProerties[options.cssId] = $shadow._panaction_getOptions( direction ).startValue + deltaValue;
+                                $shadow.animate( shadowProerties, animateOptions );
+                            });
 
                     }
                     else
