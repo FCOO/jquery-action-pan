@@ -20,21 +20,21 @@
     };
 
     $.fn.actionPanEnable = function(direction) {
-        this._panaction_setOptions( direction, {enabled: true} );
+        return this._panaction_setOptions( direction, {enabled: true} );
     };
 
     $.fn.actionPanDisable = function(direction) {
-        this._panaction_setOptions( direction, {enabled: false} );
+        return this._panaction_setOptions( direction, {enabled: false} );
     };
 
     $.fn.actionPanToggle = function(direction, state) {
         if (typeof state !== "boolean")
             state = !this._panaction_getOptions( direction ).enabled;
-        this._panaction_setOptions( direction, {enabled: state} );
+        return this._panaction_setOptions( direction, {enabled: state} );
     };
 
     $.fn.actionPanReset = function(direction) {
-        this._panaction_reset( direction, true );
+        return this._panaction_reset( direction, true );
     };
 
     // Plugin defaults – added as a property on our plugin function.
@@ -104,6 +104,7 @@
                     .on('panend.panaction',   $.proxy(this._panaction_panend, this))
                     .data('panstart_and_panend_added', true);
         }
+        return this;
     };
 
     $.fn._panaction_getOptions = function( direction ){
@@ -139,6 +140,7 @@
             this.removeClass( options.classNameAll );
             this.animate( properties, animateOptions );
         }
+        return this;
     };
 
     $.fn._panaction_panstart = function( /*event*/ ){
@@ -212,6 +214,7 @@
                     });
             };
         });
+        return this;
     };
 
     $.fn._panaction_pan = function( event ){
@@ -273,7 +276,7 @@
                     });
             } //end of if (options && options.enabled){
         });
-        return false;
+        return this;
     };
 
     $.fn._panaction_panend = function( /*event*/ ){
@@ -323,6 +326,7 @@
                         $this._panaction_reset( direction );
             }
         });
+        return this;
     };
 
 }(jQuery, this, document));
