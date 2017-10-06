@@ -11,6 +11,7 @@
 
     <!-- <link  href="bower_components.css" rel="stylesheet">	 -->
     <style>
+        html, body { padding:0; margin: 0; width: 100%; height: 100%; }
         .testbox {
             position: absolute;
             margin-top: 300px;
@@ -58,7 +59,10 @@
 </head>
 
 <body>
-    <div class="testbox"></div>
+    <div class="testbox">
+        <button class="testbutton">UP</button>
+        <div class="text"></div>
+    </div>
     <div id="s1" class="shadow"></div>
     <div id="s2" class="shadow2"></div>
 
@@ -68,9 +72,12 @@
 	<script src="bower_components.js"></script>
 	<script src="../src/jquery-action-pan.js"></script>
 	<script>
-        var pos = 0;
+        var pos = 0,
+            posText = ['UP', 'MIDDLE', 'DOWN'],
+            $testbox = $('.testbox');
 
-        $('.testbox')
+        $testbox
+            //.on('click', function( event ){ event.stopPropagation(); })
 
             .actionPan({
                 direction         : 'down',
@@ -82,6 +89,7 @@
                 action: function( $elem ){
                     pos++;
                     console.log('down', pos);
+                    $('.text').text('down -> '+posText[pos+1]);
                     $elem.actionPanToggle( 'up', pos >= 0);
                     $elem.actionPanToggle( 'down', pos <= 0);
                 }
@@ -91,17 +99,29 @@
                 direction         : 'up',
                 threshold         : function(){ return 0.2; },
                 resetAfterAction  : false,   
+
                 classNameThreshold: 'threshold-up',
                 shadows           : $('.shadow, .shadow2'),
                 action: function( $elem ){
                     pos--;
                     console.log('up', pos);
+                    $('.text').text('up -> '+posText[pos+1]);
                     $elem.actionPanToggle( 'up', pos >= 0);
                     $elem.actionPanToggle( 'down', pos <= 0);
                 }
             })
 
             ;
-	</script>
+
+    
+        $('.testbutton').on('click', function(event){ 
+            $testbox.actionPanForce('up');
+        });
+        $('.testbox').on('click', function(event){ 
+            $testbox.actionPanForce('down');
+        });
+
+
+    </script>
 </body>
 </html>

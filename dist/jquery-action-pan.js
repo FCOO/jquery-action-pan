@@ -11,6 +11,18 @@
 (function ($/*, window, document, undefined*/) {
 	"use strict";
 
+    //click-event to (try to) take care of ghost click
+    var preventGhostClickId = 'actionPan_prevent_ghost_click';
+
+    function actionPanOnClick( event ){
+        if ( $(this).data(preventGhostClickId) ){
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            return false;
+        }
+    }
+
 
     $.fn.actionPan = function(options) {
         options = $.extend( true, {}, $.fn.actionPan.defaults, options );
@@ -36,6 +48,12 @@
     $.fn.actionPanReset = function(direction) {
         return this._panaction_reset( direction, true );
     };
+
+    $.fn.actionPanForce = function(direction){
+        this._panaction_panstart();
+        this._panaction_panend( null, direction );
+    };
+
 
     // Plugin defaults � added as a property on our plugin function.
     $.fn.actionPan.defaults = {
@@ -72,7 +90,15 @@
     };
 
 
+    //****************************************************
+    //_panaction_add( options )
+    //****************************************************
     $.fn._panaction_add = function( options ){
+
+        //Prevent ghost click
+        this.on('click', actionPanOnClick );
+
+
         var def = directionDefault[options.direction];
         options.cssPostfix        = options.cssPostfix || def.cssPostfix;
         options.cssFactor         = options.cssFactor || def.cssFactor;
@@ -118,9 +144,13 @@
     };
 
 
+    //****************************************************
+    //_panaction_reset( direction, forceBack )
+    //****************************************************
     $.fn._panaction_reset = function( direction, forceBack ){
         var properties = {},
             options = this._panaction_getOptions( direction );
+
         if (options){
             if (forceBack || (options.enabled && (!options.aboveThreshold || options.resetAfterAction))){
                 //pan back to original state
@@ -143,8 +173,14 @@
         return this;
     };
 
+    //****************************************************
+    //_panaction_panstart( event )
+    //****************************************************
     $.fn._panaction_panstart = function( /*event*/ ){
         var $this = this, options;
+
+        $this.data(preventGhostClickId, true);
+
         //******************************************
         function getValue(value, defaultValue, elemDim){
             var result = $.isFunction(value) ? value($this, options) : value;
@@ -212,11 +248,14 @@
                         var $this = $(this);
                         $this._panaction_setOptions( direction, { startValue: parseFloat( $this.css(options.cssId) ) } );
                     });
-            };
+            }
         });
         return this;
     };
 
+    //****************************************************
+    //_panaction_pan( event )
+    //****************************************************
     $.fn._panaction_pan = function( event ){
         var $this = this;
 
@@ -279,24 +318,47 @@
         return this;
     };
 
-    $.fn._panaction_panend = function( /*event*/ ){
-        var $this = this;
+    //****************************************************
+    //_panaction_panend( event, forceDirection )
+    //****************************************************
+    $.fn._panaction_panend = function( event, forceDirection ){
+        var $this = this,
+            actionFound = false;
+
         $.each(['up', 'down', 'left', 'right'], function( index, direction ){
             var options = $this._panaction_getOptions( direction );
             if (options && options.enabled){
 
+                //Create function to reset and call action
+                var actionAndReset = function (){
+                    $this._panaction_reset( direction );
+
+                    if (options.action)
+                        options.action( $this, options );
+                };
+
+                //Remove all pan-classes
+                $this.removeClass( options.classNameAll );
+
+                //If a forceDirection is given: Use only this direction
+                if (forceDirection){
+                    if (direction == forceDirection){
+                        actionFound            = false;
+                        options.aboveThreshold = true;
+                        options.atMax          = false;
+
+                    }
+                    else
+                        actionFound = true;
+                }
+
+                if ( actionFound || (forceDirection && (direction != forceDirection)) )
+                    return true;
+
+
+
                 //Check if the value is above the threshold
-                if (options.aboveThreshold){
-                    var actionAndReset = function(){
-                        $this._panaction_reset( direction );
-
-                        //Disable if not resetting
-                        if (!options.resetAfterAction)
-                            $this.actionPanDisable( direction );
-
-                        if (options.action)
-                            options.action( $this, options );
-                    };
+                if (options.aboveThreshold || (direction == forceDirection)){
                     //Animate to max if not at max and need to
                     if (options.maxBeforeAction && !options.atMax){
                         //Animate to max and the fire action
@@ -318,7 +380,8 @@
                     else
                         //Just fire action
                         actionAndReset();
-                    return false;
+
+                    actionFound = true;
                 }
                 else
                     //Reset the 'direction' if it is panned
@@ -326,6 +389,9 @@
                         $this._panaction_reset( direction );
             }
         });
+        window.setTimeout(function(){
+            $this.data(preventGhostClickId, false);
+        }, 200);
         return this;
     };
 

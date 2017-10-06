@@ -45,6 +45,7 @@ http://FCOO.github.io/jquery-action-pan/demo/
     $.fn.actionPanEnable(direction)        //Enable action-pan
     $.fn.actionPanDisable(direction)       //Disable action-pan
     $.fn.actionPanToggle(direction, state) //Switch enable/disable
+    $.fn.actionPanForce(direction)         //Force actionPan to pan in direction
     $.fn.actionPanReset(direction)         //Reset/move the element back to original position. 
                                            //Usefull if options.resetAfterAction == false
 
