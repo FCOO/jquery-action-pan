@@ -343,9 +343,6 @@
                         options.action( $this, options );
                 };
 
-                //Remove all pan-classes
-                $this.removeClass( options.classNameAll );
-
                 //If a forceDirection is given: Use only this direction
                 if (forceDirection){
                     if (direction == forceDirection){
@@ -358,10 +355,11 @@
                         actionFound = true;
                 }
 
-                if ( actionFound || (forceDirection && (direction != forceDirection)) )
+                if ( actionFound || (forceDirection && (direction != forceDirection)) ){
+                    //Remove all pan-classes
+                    $this.removeClass( options.classNameAll );
                     return true;
-
-
+                }
 
                 //Check if the value is above the threshold
                 if (options.aboveThreshold || (direction == forceDirection)){
