@@ -41,13 +41,22 @@ http://FCOO.github.io/jquery-action-pan/demo/
 
 ### Methods
 
-    $.fn.actionPan(options)                //Add action-pan
-    $.fn.actionPanEnable(direction)        //Enable action-pan
-    $.fn.actionPanDisable(direction)       //Disable action-pan
-    $.fn.actionPanToggle(direction, state) //Switch enable/disable
-    $.fn.actionPanForce(direction)         //Force actionPan to pan in direction
-    $.fn.actionPanReset(direction)         //Reset/move the element back to original position. 
-                                           //Usefull if options.resetAfterAction == false
+    //Add action-pan
+    $.fn.actionPan(options)
+
+    //Enable action-pan
+    $.fn.actionPanEnable(direction)
+    
+    //Disable action-pan
+    $.fn.actionPanDisable(direction)
+    
+    //Switch enable/disable
+    $.fn.actionPanToggle(direction, state) 
+    
+    //Force actionPan to pan in direction. If checkForPan==true the action isn't done if the element is panning. Usefull for on('click', function( event ){ theElement.actionPanForce( 'up', true); }) to prevent ghost click
+    $.fn.actionPanForce(direction[, checkForPan]) 
+    
+    //Reset/move the element back to original position. Usefull if options.resetAfterAction == false$.fn.actionPanReset(direction[, checkForPan]) 
 
 
 ## Copyright and License

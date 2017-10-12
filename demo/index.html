@@ -77,8 +77,6 @@
             $testbox = $('.testbox');
 
         $testbox
-            //.on('click', function( event ){ event.stopPropagation(); })
-
             .actionPan({
                 direction         : 'down',
                 threshold         : .5,
@@ -115,10 +113,10 @@
 
     
         $('.testbutton').on('click', function(event){ 
-            $testbox.actionPanForce('up');
+            $testbox.actionPanForce('up', true);
         });
         $('.testbox').on('click', function(event){ 
-            $testbox.actionPanForce('down');
+            $testbox.actionPanForce('down', true);
         });
 
 

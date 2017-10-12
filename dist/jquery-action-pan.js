@@ -12,17 +12,7 @@
 	"use strict";
 
     //click-event to (try to) take care of ghost click
-    var preventGhostClickId = 'actionPan_prevent_ghost_click';
-
-    function actionPanOnClick( event ){
-        if ( $(this).data(preventGhostClickId) ){
-            event.preventDefault();
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-            return false;
-        }
-    }
-
+    var actionPanIsPanningId = 'actionPan_is_panning_id';
 
     $.fn.actionPan = function(options) {
         options = $.extend( true, {}, $.fn.actionPan.defaults, options );
@@ -45,13 +35,22 @@
         return this._panaction_setOptions( direction, {enabled: state} );
     };
 
-    $.fn.actionPanReset = function(direction) {
-        return this._panaction_reset( direction, true );
+    $.fn.actionPanIsPanning = function(){
+        return !!this.data(actionPanIsPanningId);
     };
 
-    $.fn.actionPanForce = function(direction){
-        this._panaction_panstart();
-        this._panaction_panend( null, direction );
+    $.fn.actionPanReset = function(direction, checkForPan) {
+        if (!checkForPan || !this.actionPanIsPanning())
+            this._panaction_reset( direction, true );
+        return this;
+    };
+
+    $.fn.actionPanForce = function(direction, checkForPan){
+        if (!checkForPan || !this.actionPanIsPanning()){
+            this._panaction_panstart();
+            this._panaction_panend( null, direction );
+        }
+        return this;
     };
 
 
@@ -96,7 +95,14 @@
     $.fn._panaction_add = function( options ){
 
         //Prevent ghost click
-        this.on('click', actionPanOnClick );
+        this.on('click', function( event ){
+            if ( $(this).actionPanIsPanning() ){
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return false;
+            }
+        });
 
 
         var def = directionDefault[options.direction];
@@ -179,7 +185,7 @@
     $.fn._panaction_panstart = function( /*event*/ ){
         var $this = this, options;
 
-        $this.data(preventGhostClickId, true);
+        $this.data(actionPanIsPanningId, true);
 
         //******************************************
         function getValue(value, defaultValue, elemDim){
@@ -390,7 +396,7 @@
             }
         });
         window.setTimeout(function(){
-            $this.data(preventGhostClickId, false);
+            $this.data(actionPanIsPanningId, false);
         }, 200);
         return this;
     };
