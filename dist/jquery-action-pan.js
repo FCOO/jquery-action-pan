@@ -71,6 +71,11 @@
         classNameThreshold  : '',   //Class added to the element when it is panning AND value is above thresholdValue
 
         shadows             : null, //jQuery-selection of element that gets same panning as the element
+
+        shadowClassNamePan        : '',   //Class added to the shadows when it is panning
+        shadowClassNameThreshold  : '',   //Class added to the shadows when it is panning AND value is above thresholdValue
+
+
         onPan               : null, //function( $element, direction, delta, options, event ): called when the element is panned
         action              : function(){}
     };
@@ -113,9 +118,10 @@
 
         //Create a string with all className (if any)
         options.classNameAll = [options.classNamePan || '', options.classNameThreshold || ''].join(' ');
+        options.shadowClassNameAll = [options.shadowClassNamePan || '', options.shadowClassNameThreshold || ''].join(' ');
 
         //Find the css-property to alter when panning
-        options.cssId = options.cssPrefix + options.cssPostfix;
+        options.cssId = options.cssId || options.cssPrefix + options.cssPostfix;
 
         //Only one direction pro element
         if ( !this._panaction_getOptions(options.direction) ) {
@@ -168,12 +174,20 @@
                         var $shadow = $(this),
                             shadowProerties = {};
                         shadowProerties[options.cssId] = $shadow._panaction_getOptions( direction ).startValue;
+
+                        //Animate back to previous state
                         $shadow.animate( shadowProerties, animateOptions );
                     });
             }
 
             //Remove all pan-classes
             this.removeClass( options.classNameAll );
+            if (options.shadows)
+                options.shadows.each(function(){
+                    $(this).removeClass( options.shadowClassNameAll );
+                });
+
+            //Animate back to previous state
             this.animate( properties, animateOptions );
         }
         return this;
@@ -184,7 +198,6 @@
     //****************************************************
     $.fn._panaction_panstart = function( /*event*/ ){
         var $this = this, options;
-
         $this.data(actionPanIsPanningId, true);
 
         //******************************************
@@ -251,8 +264,9 @@
 
                 if (options.shadows)
                     options.shadows.each(function(){
-                        var $this = $(this);
-                        $this._panaction_setOptions( direction, { startValue: parseFloat( $this.css(options.cssId) ) } );
+                        var $shadow = $(this);
+                        $shadow.addClass( options.shadowClassNamePan );
+                        $shadow._panaction_setOptions( direction, { startValue: parseFloat( $shadow.css(options.cssId) ) } );
                     });
             }
         });
@@ -264,7 +278,6 @@
     //****************************************************
     $.fn._panaction_pan = function( event ){
         var $this = this;
-
         //Due to a bug in Hammer.js panstart isn't allways called if the previous pan was stop by 'force'
         if (!$this.data('panaction_panstart_called'))
             $this.trigger( 'panstart.panaction' );
@@ -314,6 +327,9 @@
                 if (options.shadows)
                     options.shadows.each(function(){
                         var $shadow = $(this);
+
+                        $shadow.toggleClass( options.shadowClassNameThreshold, !!aboveThreshold );
+
                         $shadow.css(
                             options.cssId,
                             $shadow._panaction_getOptions( direction ).startValue + deltaValue
@@ -330,6 +346,9 @@
     $.fn._panaction_panend = function( event, forceDirection ){
         var $this = this,
             actionFound = false;
+
+        $this.data('panaction_panstart_called', false);
+
 
         $.each(['up', 'down', 'left', 'right'], function( index, direction ){
             var options = $this._panaction_getOptions( direction );
@@ -349,7 +368,6 @@
                         actionFound            = false;
                         options.aboveThreshold = true;
                         options.atMax          = false;
-
                     }
                     else
                         actionFound = true;
@@ -358,6 +376,11 @@
                 if ( actionFound || (forceDirection && (direction != forceDirection)) ){
                     //Remove all pan-classes
                     $this.removeClass( options.classNameAll );
+                    if (options.shadows)
+                        options.shadows.each(function(){
+                            $(this).removeClass( options.shadowClassNameAll );
+                        });
+
                     return true;
                 }
 
